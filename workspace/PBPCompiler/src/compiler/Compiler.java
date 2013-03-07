@@ -1,5 +1,9 @@
 package compiler;
-import scanner.*;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import compiler.parser.*;
+import compiler.scanner.*;
 
 public class Compiler {
 
@@ -7,7 +11,19 @@ public class Compiler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		for(String s : args)
+		{
+			try
+			{
+				parser p = new parser(new Yylex(new BufferedReader(new FileReader(s))));
+				p.parse();
+			}
+			catch(Exception e)
+			{
+				
+			}
+			
+		}
 
 	}
 
