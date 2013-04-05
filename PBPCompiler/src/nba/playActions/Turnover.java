@@ -1,0 +1,26 @@
+package nba.playActions;
+
+import nba.PlayAction;
+import nba.playActions.turnover.Steal;
+import nba.playActions.turnover.TurnoverType;
+
+
+public class Turnover extends PlayAction{
+
+	protected TurnoverType turnoverType;
+	protected Steal steal;
+	
+	public Turnover(TurnoverType turnoverType) 
+	{
+		this.turnoverType = turnoverType;
+		this.steal = null;
+	}
+	
+	public Turnover(TurnoverType turnoverType, Steal steal)
+	{
+		this.turnoverType = turnoverType;
+		this.steal = steal;
+		
+	}
+
+}
