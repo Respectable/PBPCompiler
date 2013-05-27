@@ -1,13 +1,13 @@
 package codeGenerator;
 
-import visitors.GameSetupVisitor;
+import visitors.*;
 import nba.Game;
 
 public class CodeGenerator 
 {
 	private Game game;
-	private String path, userName, 
-					password, fileName;
+	private String path, userName, password, 
+					fileName;
 	
 	public CodeGenerator(String path, String userName, 
 			String password, Game game, String fileName)
@@ -22,11 +22,14 @@ public class CodeGenerator
 	public void generateCode()
 	{
 		GameSetupVisitor gameSetup;
+		PossessionVisitor possessionSetup;
 
 		try
 		{
 			gameSetup = new GameSetupVisitor(path, userName, password, fileName);
 			game.accept(gameSetup);
+			possessionSetup = new PossessionVisitor(path, userName, password);
+			game.accept(possessionSetup);
 		}
 		catch(Exception e)
 		{

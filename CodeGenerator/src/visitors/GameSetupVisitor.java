@@ -109,6 +109,8 @@ public class GameSetupVisitor extends MySQLVisitor {
 		    stmt.setInt(2, game.getHomeTeam().GetTeamID());
 		    stmt.setInt(2, game.getAwayTeam().GetTeamID());
 		    stmt.executeUpdate();
+		    
+		    this.closeConnection();
 		}
 		catch (SQLException ex) 
 		{
@@ -116,6 +118,8 @@ public class GameSetupVisitor extends MySQLVisitor {
 		    System.out.println("SQLState: " + ex.getSQLState());
 		    System.out.println("VendorError: " + ex.getErrorCode());
 		}
+		
+		
 	}
 	
 	private java.sql.Date ConvertDate(Date date)

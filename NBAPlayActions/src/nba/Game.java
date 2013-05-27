@@ -62,12 +62,16 @@ public class Game implements Visitable {
 		return this.gameDate;
 	}
 	
+	public ArrayList<Period> getPeriods()
+	{
+		return periods;
+	}
+	
 	public void CompileGame(String fileName)
 	{
 		 
 		 try
 		 {
-			 AssignPossessions();
 			 debugPossessions();
 			 
 			 //compile sql statements
@@ -84,14 +88,6 @@ public class Game implements Visitable {
 		 {
 			 
 		 }
-	}
-	
-	private void AssignPossessions()
-	{
-		for (Period p : periods)
-		{
-			p.AssignPossessions(this.gameID, this.homeTeam, this.awayTeam);
-		}
 	}
 	
 	private void assignUnits()
@@ -120,5 +116,15 @@ public class Game implements Visitable {
 	public void accept(Visitor visitor) 
 	{
 		visitor.visit(this);
+	}
+	
+	public boolean homeTeamHasDuplicatePlayers()
+	{
+		return homeTeam.HasDuplicatePlayers();
+	}
+	
+	public boolean awayTeamHasDuplicatePlayers()
+	{
+		return awayTeam.HasDuplicatePlayers();
 	}
 }

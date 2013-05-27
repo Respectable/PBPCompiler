@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import visitors.Visitable;
 import visitors.Visitor;
 
-import nba.playActions.*;
-import nba.playActions.foul.OffensiveChargeFoulType;
-import nba.playActions.foul.OffensiveFoulType;
-
 public class Period implements Visitable {
 
 	private PeriodIdentification periodIdentification;
@@ -34,107 +30,6 @@ public class Period implements Visitable {
 		this.periodID = -1;
 	}
 	
-	public void AssignPossessions(int gameID, Team homeTeam, Team awayTeam)
-	{
-		Possession currentPossession = new Possession();
-		boolean madeShot = false;
-		boolean missedFirstFT = false;
-		
-		for (Play p : plays)
-		{
-			if (!currentPossession.TeamsSet() && p.IdentifiesOffense())
-			{
-				currentPossession = assignTeamRoles(currentPossession, p, homeTeam, awayTeam);
-			}
-			
-			if (!madeShot)
-			{
-				if (p.GetPlayAction().TerminatesPossession())
-				{
-					if ((p.GetPlayAction() instanceof Rebound) && missedFirstFT)
-					{
-						currentPossession.AddPlay(p);
-						missedFirstFT = false;
-					}
-					else
-					{
-						currentPossession.AddPlay(p);
-						possessions.add(currentPossession);
-						madeShot = false;
-						missedFirstFT = false;
-						currentPossession = new Possession();
-					}
-				}
-				else
-				{
-					if((p.GetPlayAction() instanceof Shot))
-					{
-						madeShot = ((Shot)p.GetPlayAction()).ShotMade();
-					}
-					if((p.GetPlayAction() instanceof FreeThrow))
-					{
-						FreeThrow ft = (FreeThrow)p.GetPlayAction();
-						if (!ft.lastFreeThrow())
-						{
-							missedFirstFT = !ft.made();
-						}
-					}
-					currentPossession.AddPlay(p);
-				}
-			}
-			else
-			{
-				if (PossessionContinuation(currentPossession, p, homeTeam, awayTeam))
-				{
-					if((p.GetPlayAction() instanceof FreeThrow))
-					{
-						FreeThrow ft = (FreeThrow)p.GetPlayAction();
-						if (!ft.lastFreeThrow())
-						{
-							missedFirstFT = !ft.made();
-						}
-					}
-					currentPossession.AddPlay(p);
-				}
-				else
-				{
-					if ((p.GetPlayAction() instanceof Rebound) && missedFirstFT)
-					{
-						currentPossession.AddPlay(p);
-						missedFirstFT = false;
-					}
-					else if (p.GetPlayAction().TerminatesPossession())
-					{
-						possessions.add(currentPossession);
-						currentPossession = new Possession();
-						madeShot = false;
-						missedFirstFT = false;
-						currentPossession.AddPlay(p);
-						currentPossession = assignTeamRoles(currentPossession, p, homeTeam, awayTeam);
-						possessions.add(currentPossession);
-						currentPossession = new Possession();
-					}
-					else
-					{
-						possessions.add(currentPossession);
-						currentPossession = new Possession();
-						madeShot = false;
-						missedFirstFT = false;
-						currentPossession.AddPlay(p);
-						if((p.GetPlayAction() instanceof Shot))
-						{
-							madeShot = ((Shot)p.GetPlayAction()).ShotMade();
-						}
-						if (p.IdentifiesOffense())
-						{
-							currentPossession = assignTeamRoles(currentPossession, p, homeTeam, awayTeam);
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	public void debugPossessions(String indent, Team homeTeam, Team awayTeam)
 	{
 		System.out.println(indent + this.periodIdentification.GetPeriodNumber() + " " 
@@ -147,43 +42,14 @@ public class Period implements Visitable {
 		}
 	}
 	
-	public Possession assignTeamRoles(Possession poss, Play play, Team home, Team away)
+	public ArrayList<Play> getPlays()
 	{
-		if (play.GetPlayAction() instanceof JumpBall)
-		{
-			JumpBall jBall = (JumpBall)play.GetPlayAction();
-			Player player = jBall.GetPossessionPlayer();
-			if (home.HasPlayer(player) && !away.HasPlayer(player))
-			{
-				poss.SetTeamRoles(home.GetTeamID(), 
-						away.GetTeamID());
-			}
-			else if (away.HasPlayer(player) && !home.HasPlayer(player))
-			{
-				poss.SetTeamRoles(away.GetTeamID(),
-						home.GetTeamID());
-			}
-		}
-		else
-		{
-			if (play.GetTeam().equals(home))
-			{
-				poss.SetTeamRoles(home.GetTeamID(), 
-						away.GetTeamID());
-			}
-			else if (play.GetTeam().equals(away))
-			{
-				poss.SetTeamRoles(away.GetTeamID(),
-						home.GetTeamID());
-			}
-			else
-			{
-				System.out.println("Unknown Team Found");
-				System.exit(-1);
-			}
-		}
-		
-		return poss;
+		return plays;
+	}
+	
+	public void addPossession(Possession possession)
+	{
+		possessions.add(possession);
 	}
 	
 	public void Compile(int gameID, Team homeTeam, Team awayTeam)
@@ -261,43 +127,6 @@ public class Period implements Visitable {
 		{
 			p.compile(this.periodID, homeTeam, awayTeam);
 		}
-	}
-	
-	private Team GetTeam(int teamID, Team homeTeam, Team awayTeam)
-	{
-		if (homeTeam.GetTeamID() == teamID)
-		{
-			return homeTeam;
-		}
-		else
-		{
-			return awayTeam;
-		}
-	}
-	
-	private boolean PossessionContinuation(Possession currentPossession, Play play, Team homeTeam, Team awayTeam)
-	{
-		boolean defensiveFoul, timeout, sub, freeThrow, defensiveTech;
-		
-		defensiveFoul =  ((play.GetPlayAction() instanceof Foul) 
-				&& GetTeam(currentPossession.GetDefenseID(), homeTeam, awayTeam).equals(play.GetTeam()));
-		if (defensiveFoul)
-		{
-			Foul foul = (Foul)play.GetPlayAction();
-			if (foul.getFoulType() instanceof OffensiveFoulType || foul.getFoulType() instanceof OffensiveChargeFoulType)
-			{
-				defensiveFoul = false;
-			}
-		}
-		
-		timeout = play.GetPlayAction() instanceof Timeout;
-		sub = play.GetPlayAction() instanceof Substitution;
-		freeThrow = ((play.GetPlayAction() instanceof FreeThrow) &&
-				GetTeam(currentPossession.GetOffenseID(), homeTeam, awayTeam).equals(play.GetTeam()));
-		defensiveTech = ((play.GetPlayAction() instanceof Technical) 
-				&& GetTeam(currentPossession.GetDefenseID(), homeTeam, awayTeam).equals(play.GetTeam()));
-		
-		return defensiveFoul || timeout || sub || freeThrow || defensiveTech;
 	}
 
 	@Override
