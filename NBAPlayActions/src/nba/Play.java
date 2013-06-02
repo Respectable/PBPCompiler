@@ -24,6 +24,11 @@ public class Play implements Visitable {
 		return this.timeStamp;
 	}
 	
+	public double getTime()
+	{
+		return this.timeStamp.GetTimeDouble();
+	}
+	
 	public boolean IdentifiesOffense()
 	{
 		return playAction.IdentifiesOffense();

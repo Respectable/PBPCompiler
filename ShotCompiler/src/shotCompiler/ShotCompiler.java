@@ -14,11 +14,11 @@ import java.io.*;
 
 public class ShotCompiler {
 
-	private ArrayList<ShotData> shots;
+	private ArrayList<ArrayList<ShotData>> gameShots;
 	
 	public ShotCompiler()
 	{
-		shots = new ArrayList<ShotData>();
+		gameShots = new ArrayList<ArrayList<ShotData>>();
 	}
 
 	public void main(String filePath) throws Exception 
@@ -41,64 +41,52 @@ public class ShotCompiler {
 	    System.exit(1);
 	}
 	
-	private static String convertToFileURL(String filename) 
-	{
-        String path = new File(filename).getAbsolutePath();
-        if (File.separatorChar != '/') {
-            path = path.replace(File.separatorChar, '/');
-        }
-
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-        return path;
-    }
-	
-	private static void readXML(String fileName)
+	private void readXML(String fileName)
     {
         Document document;
         DocumentBuilder documentBuilder;
         DocumentBuilderFactory documentBuilderFactory;
         NodeList nodeList;
-        File xmlInputFile;
-        ArrayList<ShotData> shots = new ArrayList<ShotData>();
+        File folder;
+        File[] xmlInputFiles;
+        ArrayList<ShotData> shots;
 
         try
         {
-            xmlInputFile = new File(fileName);
-            documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            document = documentBuilder.parse(xmlInputFile);
-            nodeList = document.getElementsByTagName("*");
-            ShotData s;
-
-            document.getDocumentElement().normalize();
-
-            for (int index = 0; index < nodeList.getLength(); index++)
-            {
-                Node node = nodeList.item(index);
-                if (node.getNodeType() == Node.ELEMENT_NODE)
-                {
-                    Element element = (Element) node;
-
-                    s = getTagValue(element);
-                    if (s != null)
-                    {
-                    	shots.add(s);
-                    }
-                    //System.out.println("\tcolour : " + getTagValue(element));
-                    //System.out.println("\ttest : " + getTagValue(element));
-                    //System.out.println("-----");
-                }
-            }
-            
-            for (ShotData sd : shots)
-            {
-            	if (sd.getPlayerName().equals("Kevin  Durant"))
-            	{
-            		System.out.println(sd.toString());
-            	}
-            }
+        	folder = new File(fileName);
+        	xmlInputFiles = folder.listFiles();
+        	
+        	
+        	for(File xmlInputFile : xmlInputFiles)
+        	{
+	            documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+	            document = documentBuilder.parse(xmlInputFile);
+	            nodeList = document.getElementsByTagName("*");
+	            ShotData s;
+	            shots = new ArrayList<ShotData>();
+	
+	            document.getDocumentElement().normalize();
+	
+	            for (int index = 0; index < nodeList.getLength(); index++)
+	            {
+	                Node node = nodeList.item(index);
+	                if (node.getNodeType() == Node.ELEMENT_NODE)
+	                {
+	                    Element element = (Element) node;
+	
+	                    s = getTagValue(element);
+	                    if (s != null)
+	                    {
+	                    	shots.add(s);
+	                    }
+	                    //System.out.println("\tcolour : " + getTagValue(element));
+	                    //System.out.println("\ttest : " + getTagValue(element));
+	                    //System.out.println("-----");
+	                }
+	            }
+	            gameShots.add(shots);
+        	}
         }
         catch (Exception exception)
         {
@@ -130,6 +118,11 @@ public class ShotCompiler {
             return null;
         }
     }
+	
+	public ArrayList<ArrayList<ShotData>> getShots()
+	{
+		return gameShots;
+	}
 	
 	
 }
