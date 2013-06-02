@@ -42,7 +42,7 @@ public class ShotLocationVisitor extends MySQLVisitor{
 		return null;
 	}
 	
-	private void RemoveGames(Shot shot)
+	private void removeGames(Shot shot)
 	{
 		for(ArrayList<ShotData> sd : gameShots)
 		{
@@ -160,7 +160,11 @@ public class ShotLocationVisitor extends MySQLVisitor{
 		}
 		else if (this.gameShots.size() > 1)
 		{
-			
+			removeGames(shot);
+			if (this.gameShots.size() == 1)
+			{
+				currentGame  = gameShots.get(1);
+			}
 		}
 		else
 		{
