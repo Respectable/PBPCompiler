@@ -23,13 +23,11 @@ public class ShotCompiler {
 
 	public void main(String filePath) throws Exception 
 	{
-		String filename = null;
-
-	    if (filename == null) {
+	    if (filePath == null) {
 	        usage();
 	    }
 	    
-	    readXML(filename);
+	    readXML(filePath);
 	    
 	}
 
@@ -50,6 +48,7 @@ public class ShotCompiler {
         File folder;
         File[] xmlInputFiles;
         ArrayList<ShotData> shots;
+        String currentDoc = "";
 
         try
         {
@@ -59,6 +58,7 @@ public class ShotCompiler {
         	
         	for(File xmlInputFile : xmlInputFiles)
         	{
+        		currentDoc = xmlInputFile.getAbsolutePath();
 	            documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	            documentBuilder = documentBuilderFactory.newDocumentBuilder();
 	            document = documentBuilder.parse(xmlInputFile);
@@ -90,7 +90,10 @@ public class ShotCompiler {
         }
         catch (Exception exception)
         {
+        	System.out.println("Error reading shot data on file " +
+        						currentDoc);
             exception.printStackTrace();
+            System.exit(-1);
         }
     }
 	

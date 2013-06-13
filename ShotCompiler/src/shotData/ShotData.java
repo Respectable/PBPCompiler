@@ -20,12 +20,13 @@ public class ShotData {
 	{
 		this.playerName = player;
 		this.time = parseTime(description);
+		this.overtime = (quarter >= 5);
 		this.quarter = setQuarter(quarter, description);
 		this.x = x;
 		this.y = y;
 		this.madeShot = parseMadeShot(madeShot);
 		this.homeTeam = parseHomeTeam(homeTeam);
-		this.overtime = false;
+		
 	}
 	
 	private String parseTime(String description)
@@ -113,9 +114,11 @@ public class ShotData {
 		}
 	}
 	
-	private double getTimeDouble()
+	public double getTimeDouble()
 	{
 		String min,sec,tenth;
+		final double quarterLength = 720.0; //length of an NBA quarter in seconds
+		final double overtimeLength = 300.0; //length of an NBA overtime in seconds
 		
 		min = this.time.substring(0, this.time.indexOf(":"));
 		if (this.time.indexOf(".") == -1)
@@ -129,8 +132,19 @@ public class ShotData {
 			tenth = sec = this.time.substring(this.time.indexOf(".") + 1).trim();
 		}
 		
-		return 720 - ((60.0 * Double.parseDouble(min)) + Double.parseDouble(sec) + (Double.parseDouble(tenth) / 10.0)) +
-				(720.0 * (this.quarter - 1));
+		double currentTime = ((60.0 * Double.parseDouble(min)) 
+								+ Double.parseDouble(sec) + 
+								(Double.parseDouble(tenth) / 10.0));
+		if (this.overtime)
+		{
+			return (quarterLength * 4) + ((this.quarter - 1) * overtimeLength)
+					+ (overtimeLength - currentTime);
+		}
+		else
+		{
+			return ((this.quarter - 1) * quarterLength)
+					+ (quarterLength - currentTime);
+		}
 	}
 
 }

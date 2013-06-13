@@ -52,6 +52,16 @@ public class Period implements Visitable {
 		possessions.add(possession);
 	}
 	
+	public int getPeriodInt()
+	{
+		return this.periodIdentification.GetPeriodInt();
+	}
+	
+	public boolean isInRegulation()
+	{
+		return this.periodIdentification.PeriodIsRegulation();
+	}
+	
 	public void Compile(int gameID, Team homeTeam, Team awayTeam)
 	{
 		Connection conn = null;

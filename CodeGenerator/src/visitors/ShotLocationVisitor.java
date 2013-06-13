@@ -17,14 +17,17 @@ public class ShotLocationVisitor extends MySQLVisitor{
 
 	private ArrayList<ArrayList<ShotData>> gameShots;
 	private ArrayList<ShotData> currentGame;
-	private ArrayList<Shot> shotsWithoutCoord;
 	private Double currentPlayTime;
 	private Player currentPlayer;
+	private int currentPeriod;
+	private boolean overtime;
 	
 	public ShotLocationVisitor(String path, String userName, String password)
 			throws ClassNotFoundException, SQLException 
 	{
 		super(path, userName, password);
+		this.gameShots = new ArrayList<ArrayList<ShotData>>();
+		this.currentGame = new ArrayList<ShotData>();
 	}
 	
 	public ShotLocationVisitor(String path, String userName, String password,
@@ -33,21 +36,52 @@ public class ShotLocationVisitor extends MySQLVisitor{
 	{
 		this(path, userName, password);
 		this.gameShots = shotCompiler.getShots();
-		this.currentGame = new ArrayList<ShotData>();
-		this.shotsWithoutCoord = new ArrayList<Shot>();
 	}
 	
-	private Shot FindShot(ArrayList<ShotData> shotData, Shot shot)
+	public ArrayList<ShotData> getCurrentGame()
 	{
-		return null;
+		return this.currentGame;
+	}
+	
+	/**
+	 * @param shotData the shot data (x,y coordinates) for a single game
+	 * @param shot the shot being searched for in the shotData argument
+	 * @return true if shot was found in ShotData
+	 */
+	private boolean FindShot(ArrayList<ShotData> shotData, Shot shot)
+	{
+		//search the shots of a game (shotData)
+		for (ShotData data : shotData)
+		{
+			if (data.getPlayerName().contains(currentPlayer.GetLastName()) 
+					&& ((data.getTimeDouble() - currentPlayTime()) < 1));
+				return true;
+		}
+		return false;
+	}
+	
+	private double currentPlayTime()
+	{
+		final double quarterLength = 720.0; //length of an NBA quarter in seconds
+		final double overtimeLength = 300.0; //length of an NBA overtime in seconds
+		
+		if (this.overtime)
+		{
+			return (quarterLength * 4) + ((this.currentPeriod - 1) * overtimeLength)
+					+ (overtimeLength - currentPlayTime);
+		}
+		else
+		{
+			return ((this.currentPeriod - 1) * quarterLength)
+					+ (quarterLength - currentPlayTime);
+		}
 	}
 	
 	private void removeGames(Shot shot)
 	{
 		for(ArrayList<ShotData> sd : gameShots)
 		{
-			Shot foundShot = FindShot(sd, shot);
-			if (foundShot == null)
+			if (!FindShot(sd, shot))
 			{
 				gameShots.remove(sd);
 			}
@@ -59,7 +93,14 @@ public class ShotLocationVisitor extends MySQLVisitor{
 	{
 		for(Period p : game.getPeriods())
 		{
-			p.accept(this);
+			if (this.currentGame.size() > 0)
+			{
+				return;
+			}
+			else
+			{
+				p.accept(this);
+			}
 		}
 	}
 
@@ -72,9 +113,18 @@ public class ShotLocationVisitor extends MySQLVisitor{
 	@Override
 	public void visit(Period period) 
 	{
+		this.currentPeriod = period.getPeriodInt();
+		this.overtime = period.isInRegulation();
 		for(Play p : period.getPlays())
 		{
-			p.accept(this);
+			if (this.currentGame.size() > 0)
+			{
+				return;
+			}
+			else
+			{
+				p.accept(this);
+			}
 		}
 	}
 
@@ -156,7 +206,7 @@ public class ShotLocationVisitor extends MySQLVisitor{
 	{
 		if (this.gameShots.size() == 1)
 		{
-			
+			return;
 		}
 		else if (this.gameShots.size() > 1)
 		{
